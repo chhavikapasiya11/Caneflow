@@ -3,7 +3,11 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const authRoutes = require("./routes/auth");
-const queueRoutes = require("./routes/queue");
+const queueRoutes =
+  require("./routes/queue");
+
+const queueStateRoutes =
+  require("./routes/queueState");
 
 const app = express();
 
@@ -15,8 +19,15 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/queue", queueRoutes);
+app.use(
+  "/api/queue",
+  queueRoutes
+);
 
+app.use(
+  "/api/queue-state",
+  queueStateRoutes
+);
 // Test Route
 app.get("/", (req, res) => {
   res.status(200).json({

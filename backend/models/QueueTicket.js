@@ -7,10 +7,10 @@ const queueTicketSchema = new mongoose.Schema(
       required: true,
     },
 
-   queueDate: {
-  type: String,
-  required: true
-},
+    queueDate: {
+      type: String,
+      required: true,
+    },
 
     farmer: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +22,6 @@ const queueTicketSchema = new mongoose.Schema(
       type: String,
       enum: [
         "waiting",
-        "called",
         "processing",
         "completed",
       ],
@@ -33,11 +32,17 @@ const queueTicketSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    estimatedArrivalMinutes: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
   }
 );
+
 module.exports = mongoose.model(
   "QueueTicket",
   queueTicketSchema
