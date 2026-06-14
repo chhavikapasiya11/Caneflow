@@ -73,79 +73,110 @@ router.post(
   Farmer Queue Status
 */
 router.get(
-  "/my-status",
-  auth,
-  authorize("farmer"),
-  async (req, res) => {
-    try {
+"/my-status",
+auth,
+authorize("farmer"),
+async (req, res) => {
+try {
+  const ticket =
+    await QueueTicket.findOne({
+      farmer: req.user.id,
+    }).sort({
+      createdAt: -1,
+    });
 
-      const ticket =
-        await QueueTicket.findOne({
-          farmer: req.user.id,
-        }).sort({
-          createdAt: -1,
-        });
-
-      if (!ticket) {
-        return res.status(404).json({
-          success: false,
-          message: "No active ticket found",
-        });
-      }
-
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
-      const queueState =
-        await QueueState.findOne({
-          queueDate: today,
-        });
-
-      const currentToken =
-        queueState?.currentToken || 0;
-
-      const avgProcessingMinutes =
-        queueState?.averageProcessingMinutes || 5;
-
-      const ahead = Math.max(
-        ticket.tokenNumber -
-        currentToken,
-        0
-      );
-
-      const etaMinutes =
-        ahead *
-        avgProcessingMinutes;
-
-      res.status(200).json({
-        success: true,
-        data: {
-          tokenNumber:
-            ticket.tokenNumber,
-
-          currentToken,
-
-          ahead,
-
-          etaMinutes,
-
-          status:
-            ticket.status,
-        },
-      });
-
-    } catch (error) {
-
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-
-    }
+  if (!ticket) {
+    return res.status(404).json({
+      success: false,
+      message: "No active ticket found",
+    });
   }
+
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  const queueState =
+    await QueueState.findOne({
+      queueDate: today,
+    });
+
+  const currentToken =
+    queueState?.currentToken || 0;
+
+  const avgProcessingMinutes =
+    queueState?.averageProcessingMinutes || 5;
+
+  const ahead = Math.max(
+    ticket.tokenNumber -
+    currentToken-1,
+    0
+  );
+
+  const etaMinutes =
+    ahead *
+    avgProcessingMinutes;
+
+  const windowStart =
+    new Date(
+      Date.now() +
+      etaMinutes * 60 * 1000
+    );
+
+  const windowEnd =
+    new Date(
+      windowStart.getTime() +
+      30 * 60 * 1000
+    );
+
+  const arrivalWindow =
+    `${windowStart.toLocaleTimeString(
+      "en-IN",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }
+    )} - ${windowEnd.toLocaleTimeString(
+      "en-IN",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }
+    )}`;
+    
+
+  res.status(200).json({
+    success: true,
+    data: {
+      tokenNumber:
+        ticket.tokenNumber,
+
+      currentToken,
+
+      ahead,
+
+      arrivalWindow,
+
+      status:
+        ticket.status,
+    },
+    
+  });
+
+} catch (error) {
+
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
+
+}
+
+}
 );
 
 module.exports = router;

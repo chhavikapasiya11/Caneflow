@@ -1,113 +1,179 @@
 const express = require("express");
 
 const QueueState =
-  require("../models/QueueState");
+require("../models/QueueState");
 
 const auth =
-  require("../middleware/auth");
+require("../middleware/auth");
 
 const authorize =
-  require("../middleware/role");
+require("../middleware/role");
 
 const router = express.Router();
 
 /*
-  Update Current Token
+Update Current Token Manually
 */
 router.patch(
-  "/current-token",
-  auth,
-  authorize("mill"),
-  async (req, res) => {
-    try {
+"/current-token",
+auth,
+authorize("mill"),
+async (req, res) => {
+try {
 
-      const { currentToken } =
-        req.body;
+  const { currentToken } =
+    req.body;
 
-      if (
-        currentToken === undefined
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Current token is required",
-        });
-      }
-
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
-      const state =
-        await QueueState.findOneAndUpdate(
-          {
-            queueDate: today,
-          },
-          {
-            currentToken,
-            lastUpdatedAt:
-              new Date(),
-          },
-          {
-            upsert: true,
-            new: true,
-          }
-        );
-
-      res.status(200).json({
-        success: true,
-        data: state,
-      });
-
-    } catch (error) {
-
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        message:
-          "Internal Server Error",
-      });
-
-    }
+  if (
+    currentToken === undefined
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Current token is required",
+    });
   }
+
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  const state =
+    await QueueState.findOneAndUpdate(
+      {
+        queueDate: today,
+      },
+      {
+        currentToken,
+        lastUpdatedAt:
+          new Date(),
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    );
+
+  res.status(200).json({
+    success: true,
+    data: state,
+  });
+
+} catch (error) {
+
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message:
+      "Internal Server Error",
+  });
+}
+
+
+}
 );
 
 /*
-  Get Queue State
+Move To Next Vehicle
+*/
+router.post(
+"/next",
+auth,
+authorize("mill"),
+async (req, res) => {
+try {
+
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  let state =
+    await QueueState.findOne({
+      queueDate: today,
+    });
+
+  if (!state) {
+
+    state =
+      await QueueState.create({
+        queueDate: today,
+        currentToken: 1,
+      });
+
+  } else {
+
+    state.currentToken += 1;
+    state.lastUpdatedAt =
+      new Date();
+
+    await state.save();
+
+  }
+
+  res.status(200).json({
+    success: true,
+    message:
+      "Moved to next vehicle",
+    data: {
+      currentToken:
+        state.currentToken,
+    },
+  });
+
+} catch (error) {
+
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message:
+      "Internal Server Error",
+  });
+
+}
+
+
+}
+);
+
+/*
+Get Queue State
 */
 router.get(
-  "/",
-  auth,
-  async (req, res) => {
-    try {
+"/",
+auth,
+async (req, res) => {
+try {
 
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
 
-      const state =
-        await QueueState.findOne({
-          queueDate: today,
-        });
+  const state =
+    await QueueState.findOne({
+      queueDate: today,
+    });
 
-      res.status(200).json({
-        success: true,
-        data: state,
-      });
+  res.status(200).json({
+    success: true,
+    data: state,
+  });
 
-    } catch (error) {
+} catch (error) {
 
-      console.error(error);
+  console.error(error);
 
-      res.status(500).json({
-        success: false,
-        message:
-          "Internal Server Error",
-      });
+  res.status(500).json({
+    success: false,
+    message:
+      "Internal Server Error",
+  });
 
-    }
-  }
+}
+
+
+}
 );
 
 module.exports = router;
