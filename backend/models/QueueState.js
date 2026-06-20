@@ -1,34 +1,40 @@
 const mongoose = require("mongoose");
 
 const queueStateSchema = new mongoose.Schema(
-  {
-    queueDate: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+{
+queueDate: {
+type: String,
+required: true,
+unique: true,
+},
 
-    currentToken: {
-      type: Number,
-      default: 0,
-    },
+currentToken: {
+  type: Number,
+  default: 0,
+},
 
-    averageProcessingMinutes: {
-      type: Number,
-      default: 5,
-    },
+averageProcessingMinutes: {
+  type: Number,
+  default: 5,
+},
 
-    lastUpdatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  {
-    timestamps: true,
-  }
+dailyCapacity: {
+  type: Number,
+  default: 200,
+},
+
+lastUpdatedAt: {
+  type: Date,
+  default: Date.now,
+},
+
+},
+{
+timestamps: true,
+}
 );
 
 module.exports = mongoose.model(
-  "QueueState",
-  queueStateSchema
+"QueueState",
+queueStateSchema
 );

@@ -12,63 +12,112 @@ const router = express.Router();
   Generate Token
 */
 router.post(
-  "/",
-  auth,
-  authorize("mill"),
-  async (req, res) => {
-    try {
+"/",
+auth,
+authorize("mill"),
+async (req, res) => {
+try {
 
-      const { farmerId } = req.body;
+  const { farmerId } = req.body;
 
-      if (!farmerId) {
-        return res.status(400).json({
-          success: false,
-          message: "Farmer ID is required",
-        });
-      }
-
-      const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
-      const lastTicket =
-        await QueueTicket.findOne({
-          queueDate: today,
-        }).sort({
-          tokenNumber: -1,
-        });
-
-      const nextTokenNumber =
-        lastTicket
-          ? lastTicket.tokenNumber + 1
-          : 1;
-
-      const ticket =
-        await QueueTicket.create({
-          tokenNumber: nextTokenNumber,
-          queueDate: today,
-          farmer: farmerId,
-        });
-
-      res.status(201).json({
-        success: true,
-        message: "Token generated successfully",
-        data: ticket,
-      });
-
-    } catch (error) {
-
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-
-    }
+  if (!farmerId) {
+    return res.status(400).json({
+      success: false,
+      message: "Farmer ID is required",
+    });
   }
-);
 
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  const lastTicket =
+    await QueueTicket.findOne({
+      queueDate: today,
+    }).sort({
+      tokenNumber: -1,
+    });
+
+  const nextTokenNumber =
+    lastTicket
+      ? lastTicket.tokenNumber + 1
+      : 1;
+
+  const queueState =
+    await QueueState.findOne({
+      queueDate: today,
+    });
+
+  const dailyCapacity =
+    queueState?.dailyCapacity || 200;
+
+  const dayOffset =
+    Math.floor(
+      (nextTokenNumber - 1) /
+      dailyCapacity
+    );
+
+  const serviceDate =
+    new Date();
+
+  serviceDate.setDate(
+    serviceDate.getDate() +
+    dayOffset
+  );
+
+  const formattedServiceDate =
+    serviceDate
+      .toISOString()
+      .split("T")[0];
+
+  const ticket =
+    await QueueTicket.create({
+      tokenNumber:
+        nextTokenNumber,
+
+      queueDate:
+        today,
+
+      serviceDate:
+        formattedServiceDate,
+
+      farmer:
+        farmerId,
+    });
+
+  res.status(201).json({
+    success: true,
+    message:
+      "Token generated successfully",
+    data: {
+      tokenNumber:
+        ticket.tokenNumber,
+
+      queueDate:
+        ticket.queueDate,
+
+      serviceDate:
+        ticket.serviceDate,
+
+      status:
+        ticket.status,
+    },
+  });
+
+} catch (error) {
+
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message:
+      "Internal Server Error",
+  });
+
+}
+
+}
+);
 /*
   Farmer Queue Status
 */
@@ -96,6 +145,27 @@ try {
     .toISOString()
     .split("T")[0];
 
+  if (ticket.serviceDate !== today) {
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        tokenNumber:
+          ticket.tokenNumber,
+
+        serviceDate:
+          ticket.serviceDate,
+
+        status:
+          ticket.status,
+
+        message:
+          "Your service date has not arrived yet",
+      },
+    });
+
+  }
+
   const queueState =
     await QueueState.findOne({
       queueDate: today,
@@ -109,7 +179,7 @@ try {
 
   const ahead = Math.max(
     ticket.tokenNumber -
-    currentToken-1,
+    currentToken - 1,
     0
   );
 
@@ -145,13 +215,27 @@ try {
         hour12: true,
       }
     )}`;
-    
 
+  let message = "";
+
+  if (currentToken === 0) {
+    message =
+      "Queue has not started yet";
+  } else if (ahead === 0) {
+    message =
+      "Your turn has arrived. Please proceed to the mill";
+  } else {
+    message =
+      `${ahead} vehicle(s) ahead of you`;
+  }
   res.status(200).json({
     success: true,
     data: {
       tokenNumber:
         ticket.tokenNumber,
+
+      serviceDate:
+        ticket.serviceDate,
 
       currentToken,
 
@@ -161,8 +245,9 @@ try {
 
       status:
         ticket.status,
+
+      message,
     },
-    
   });
 
 } catch (error) {
@@ -171,12 +256,13 @@ try {
 
   res.status(500).json({
     success: false,
-    message: "Internal Server Error",
+    message:
+      "Internal Server Error",
   });
 
 }
-
 }
 );
+
 
 module.exports = router;
