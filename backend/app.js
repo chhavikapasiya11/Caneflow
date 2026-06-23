@@ -3,9 +3,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const authRoutes = require("./routes/auth");
+const scheduleRoutes =
+  require("./routes/schedule");
 const queueRoutes =
   require("./routes/queue");
-
 const queueStateRoutes =
   require("./routes/queueState");
 
@@ -19,6 +20,10 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use(
+  "/api/schedules",
+  scheduleRoutes
+);
 app.use(
   "/api/queue",
   queueRoutes

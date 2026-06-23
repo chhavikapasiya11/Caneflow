@@ -1,15 +1,24 @@
 const express = require("express");
 
-const QueueTicket = require("../models/QueueTicket");
-const QueueState = require("../models/QueueState");
+const QueueTicket =
+require("../models/QueueTicket");
 
-const auth = require("../middleware/auth");
-const authorize = require("../middleware/role");
+const QueueState =
+require("../models/QueueState");
+
+const ProcurementSchedule =
+require("../models/Procurement");
+
+const auth =
+require("../middleware/auth");
+
+const authorize =
+require("../middleware/role");
 
 const router = express.Router();
 
 /*
-  Generate Token
+Generate Token
 */
 router.post(
 "/",
@@ -18,22 +27,41 @@ authorize("mill"),
 async (req, res) => {
 try {
 
-  const { farmerId } = req.body;
+  const { farmerId } =
+    req.body;
 
   if (!farmerId) {
     return res.status(400).json({
       success: false,
-      message: "Farmer ID is required",
+      message:
+        "Farmer ID is required",
     });
   }
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const schedule =
+    await ProcurementSchedule.findOne({
+      $expr: {
+        $lt: [
+          "$allocated",
+          "$capacity",
+        ],
+      },
+    }).sort({
+      serviceDate: 1,
+    });
+
+  if (!schedule) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "No available schedule found",
+    });
+  }
 
   const lastTicket =
     await QueueTicket.findOne({
-      queueDate: today,
+      serviceDate:
+        schedule.serviceDate,
     }).sort({
       tokenNumber: -1,
     });
@@ -43,47 +71,20 @@ try {
       ? lastTicket.tokenNumber + 1
       : 1;
 
-  const queueState =
-    await QueueState.findOne({
-      queueDate: today,
-    });
-
-  const dailyCapacity =
-    queueState?.dailyCapacity || 200;
-
-  const dayOffset =
-    Math.floor(
-      (nextTokenNumber - 1) /
-      dailyCapacity
-    );
-
-  const serviceDate =
-    new Date();
-
-  serviceDate.setDate(
-    serviceDate.getDate() +
-    dayOffset
-  );
-
-  const formattedServiceDate =
-    serviceDate
-      .toISOString()
-      .split("T")[0];
-
   const ticket =
     await QueueTicket.create({
       tokenNumber:
         nextTokenNumber,
 
-      queueDate:
-        today,
-
       serviceDate:
-        formattedServiceDate,
+        schedule.serviceDate,
 
       farmer:
         farmerId,
     });
+
+  schedule.allocated += 1;
+  await schedule.save();
 
   res.status(201).json({
     success: true,
@@ -92,9 +93,6 @@ try {
     data: {
       tokenNumber:
         ticket.tokenNumber,
-
-      queueDate:
-        ticket.queueDate,
 
       serviceDate:
         ticket.serviceDate,
@@ -116,10 +114,12 @@ try {
 
 }
 
+
 }
 );
+
 /*
-  Farmer Queue Status
+Farmer Queue Status
 */
 router.get(
 "/my-status",
@@ -127,9 +127,11 @@ auth,
 authorize("farmer"),
 async (req, res) => {
 try {
+
   const ticket =
     await QueueTicket.findOne({
-      farmer: req.user.id,
+      farmer:
+        req.user.id,
     }).sort({
       createdAt: -1,
     });
@@ -137,15 +139,20 @@ try {
   if (!ticket) {
     return res.status(404).json({
       success: false,
-      message: "No active ticket found",
+      message:
+        "No active ticket found",
     });
   }
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const today =
+    new Date()
+      .toISOString()
+      .split("T")[0];
 
-  if (ticket.serviceDate !== today) {
+  if (
+    ticket.serviceDate !==
+    today
+  ) {
 
     return res.status(200).json({
       success: true,
@@ -168,20 +175,25 @@ try {
 
   const queueState =
     await QueueState.findOne({
-      queueDate: today,
+      serviceDate:
+        today,
     });
 
   const currentToken =
-    queueState?.currentToken || 0;
+    queueState?.currentToken ||
+    0;
 
   const avgProcessingMinutes =
-    queueState?.averageProcessingMinutes || 5;
+    queueState?.averageProcessingMinutes ||
+    5;
 
-  const ahead = Math.max(
-    ticket.tokenNumber -
-    currentToken - 1,
-    0
-  );
+  const ahead =
+    Math.max(
+      ticket.tokenNumber -
+      currentToken -
+      1,
+      0
+    );
 
   const etaMinutes =
     ahead *
@@ -190,13 +202,17 @@ try {
   const windowStart =
     new Date(
       Date.now() +
-      etaMinutes * 60 * 1000
+      etaMinutes *
+        60 *
+        1000
     );
 
   const windowEnd =
     new Date(
       windowStart.getTime() +
-      30 * 60 * 1000
+      30 *
+        60 *
+        1000
     );
 
   const arrivalWindow =
@@ -218,16 +234,21 @@ try {
 
   let message = "";
 
-  if (currentToken === 0) {
+  if (
+    currentToken === 0
+  ) {
     message =
       "Queue has not started yet";
-  } else if (ahead === 0) {
+  } else if (
+    ahead === 0
+  ) {
     message =
       "Your turn has arrived. Please proceed to the mill";
   } else {
     message =
       `${ahead} vehicle(s) ahead of you`;
   }
+
   res.status(200).json({
     success: true,
     data: {
@@ -261,8 +282,9 @@ try {
   });
 
 }
+
+
 }
 );
-
 
 module.exports = router;

@@ -41,7 +41,7 @@ try {
   const state =
     await QueueState.findOneAndUpdate(
       {
-        queueDate: today,
+        serviceDate: today,
       },
       {
         currentToken,
@@ -68,15 +68,16 @@ try {
     message:
       "Internal Server Error",
   });
+
 }
 
 
 }
 );
 
-/*
-Move To Next Vehicle
-*/
+
+//Move To Next Vehicle
+
 router.post(
 "/next",
 auth,
@@ -90,20 +91,22 @@ try {
 
   let state =
     await QueueState.findOne({
-      queueDate: today,
+      serviceDate: today,
     });
 
   if (!state) {
 
     state =
       await QueueState.create({
-        queueDate: today,
+        serviceDate: today,
         currentToken: 1,
+        averageProcessingMinutes: 5,
       });
 
   } else {
 
     state.currentToken += 1;
+
     state.lastUpdatedAt =
       new Date();
 
@@ -133,9 +136,9 @@ try {
 
 }
 
-
 }
 );
+
 
 /*
 Get Queue State
@@ -152,7 +155,7 @@ try {
 
   const state =
     await QueueState.findOne({
-      queueDate: today,
+      serviceDate: today,
     });
 
   res.status(200).json({
@@ -171,7 +174,6 @@ try {
   });
 
 }
-
 
 }
 );
