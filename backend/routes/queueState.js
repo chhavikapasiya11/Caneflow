@@ -10,7 +10,6 @@ const authorize =
 require("../middleware/role");
 
 const router = express.Router();
-
 /*
 Update Current Token Manually
 */
@@ -70,11 +69,8 @@ try {
   });
 
 }
-
-
 }
 );
-
 
 //Move To Next Vehicle
 
@@ -88,6 +84,19 @@ try {
   const today = new Date()
     .toISOString()
     .split("T")[0];
+
+  const totalTokens =
+    await QueueTicket.countDocuments({
+      serviceDate: today,
+    });
+
+  if (totalTokens === 0) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "No vehicles scheduled for today",
+    });
+  }
 
   let state =
     await QueueState.findOne({
@@ -103,16 +112,35 @@ try {
         averageProcessingMinutes: 5,
       });
 
-  } else {
-
-    state.currentToken += 1;
-
-    state.lastUpdatedAt =
-      new Date();
-
-    await state.save();
+      return res.status(200).json({
+        success: true,
+        message:
+          "Moved to next vehicle",
+        data: {
+          currentToken:
+            state.currentToken,
+        },
+      });
 
   }
+
+  if (
+    state.currentToken >=
+    totalTokens
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "No more vehicles in queue",
+    });
+  }
+
+  state.currentToken += 1;
+
+  state.lastUpdatedAt =
+    new Date();
+
+  await state.save();
 
   res.status(200).json({
     success: true,
@@ -135,46 +163,6 @@ try {
   });
 
 }
-
-}
-);
-
-
-/*
-Get Queue State
-*/
-router.get(
-"/",
-auth,
-async (req, res) => {
-try {
-
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
-
-  const state =
-    await QueueState.findOne({
-      serviceDate: today,
-    });
-
-  res.status(200).json({
-    success: true,
-    data: state,
-  });
-
-} catch (error) {
-
-  console.error(error);
-
-  res.status(500).json({
-    success: false,
-    message:
-      "Internal Server Error",
-  });
-
-}
-
 }
 );
 

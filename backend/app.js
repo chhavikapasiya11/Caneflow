@@ -9,6 +9,10 @@ const queueRoutes =
   require("./routes/queue");
 const queueStateRoutes =
   require("./routes/queueState");
+const millDashRoutes =
+  require("./routes/milldash");
+  const farmerDashRoutes =
+  require("./routes/farmerdash");
 
 const app = express();
 
@@ -32,6 +36,15 @@ app.use(
 app.use(
   "/api/queue-state",
   queueStateRoutes
+);
+app.use(
+  "/api/mill-dashboard",
+  millDashRoutes
+);
+
+app.use(
+  "/api/farmer-dashboard",
+  farmerDashRoutes
 );
 // Test Route
 app.get("/", (req, res) => {
