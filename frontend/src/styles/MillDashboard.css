@@ -1,0 +1,95 @@
+.dashboard-container{
+
+    width:100%;
+
+    min-height:100vh;
+
+    background:#f4f6f9;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.dashboard-card{
+
+    width:500px;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:10px;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.15);
+
+}
+
+.dashboard-card h1{
+
+    text-align:center;
+
+    color:#2E7D32;
+
+    margin-bottom:25px;
+
+}
+
+.dashboard-info{
+
+    margin-bottom:20px;
+
+}
+
+.dashboard-info p{
+
+    margin:12px 0;
+
+    font-size:17px;
+
+}
+
+.dashboard-card input{
+
+    width:100%;
+
+    padding:10px;
+
+    border:1px solid #ccc;
+
+    border-radius:5px;
+
+    margin-top:10px;
+
+}
+
+.dashboard-card button{
+
+    width:100%;
+
+    margin-top:15px;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:5px;
+
+    background:#2E7D32;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+.dashboard-card button:hover{
+
+    background:#256428;
+
+}

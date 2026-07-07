@@ -1,0 +1,145 @@
+body{
+
+    background:#f4f6f9;
+
+    font-family:Arial, Helvetica, sans-serif;
+
+}
+
+.schedule-container{
+
+    width:90%;
+
+    margin:30px auto;
+
+}
+
+.schedule-card{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:10px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+
+}
+
+.schedule-card h1{
+
+    text-align:center;
+
+    color:#2E7D32;
+
+    margin-bottom:20px;
+
+}
+
+.schedule-card label{
+
+    display:block;
+
+    margin-top:15px;
+
+    margin-bottom:5px;
+
+    font-weight:bold;
+
+}
+
+.schedule-card input{
+
+    width:100%;
+
+    padding:10px;
+
+    border:1px solid #ccc;
+
+    border-radius:5px;
+
+}
+
+.schedule-card button{
+
+    margin-top:20px;
+
+    width:100%;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:5px;
+
+    background:#2E7D32;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+.schedule-card button:hover{
+
+    background:#256428;
+
+}
+
+.schedule-list{
+
+    margin-top:40px;
+
+    background:white;
+
+    padding:20px;
+
+    border-radius:10px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+
+}
+
+.schedule-list h2{
+
+    margin-bottom:20px;
+
+    color:#2E7D32;
+
+}
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+table th{
+
+    background:#2E7D32;
+
+    color:white;
+
+    padding:12px;
+
+}
+
+table td{
+
+    text-align:center;
+
+    padding:12px;
+
+    border-bottom:1px solid #ddd;
+
+}
+
+table tr:hover{
+
+    background:#f5f5f5;
+
+}

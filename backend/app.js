@@ -14,6 +14,8 @@ const millDashRoutes =
   const farmerDashRoutes =
   require("./routes/farmerdash");
 
+  const farmerRoutes =
+require("./routes/farmer");
 const app = express();
 
 // Middleware
@@ -45,6 +47,10 @@ app.use(
 app.use(
   "/api/farmer-dashboard",
   farmerDashRoutes
+);
+app.use(
+  "/api/farmers",
+  farmerRoutes
 );
 // Test Route
 app.get("/", (req, res) => {

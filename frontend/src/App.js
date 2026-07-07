@@ -9,8 +9,8 @@ import Register from "./pages/Register";
 import MillDashboard from "./pages/MillDashboard";
 import FarmerDashboard from "./pages/FarmerDashboard";
 import Schedule from "./pages/Schedule";
-//import NotFound from "./pages/NotFound";
-
+import ProtectedRoute from "./components/ProtectedRoute";
+import Farmers from "./pages/Farmer";
 function App() {
   return (
     <BrowserRouter>
@@ -42,10 +42,20 @@ function App() {
           element={<Schedule />}
         />
 
-        {/* <Route
-          path="*"
-          element={<NotFound />}
-        /> */}
+     
+                <Route
+                    path="/farmer-dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={["farmer"]}>
+                            <FarmerDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+    path="/farmers"
+    element={<Farmers />}
+/>
 
       </Routes>
 
