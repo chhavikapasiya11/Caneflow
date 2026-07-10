@@ -1,104 +1,172 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import api from "../services/api";
+
 import "../styles/Login.css";
 
 function Login() {
+
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        email: "",
+        phone: "",
         password: "",
     });
 
     const [loading, setLoading] = useState(false);
+
     const [error, setError] = useState("");
 
     const handleChange = (e) => {
+
         setError("");
 
-        setFormData((prev) => ({
-            ...prev,
+        setFormData({
+            ...formData,
             [e.target.name]: e.target.value,
-        }));
+        });
+
     };
 
     const validate = () => {
-        const email = formData.email.trim().toLowerCase();
 
-        if (!email || !formData.password) {
-            return "All fields are required.";
+        if (!formData.phone || !formData.password) {
+
+            return "Phone and password are required.";
+
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[6-9]\d{9}$/;
 
-        if (!emailRegex.test(email)) {
-            return "Please enter a valid email address.";
+        if (!phoneRegex.test(formData.phone)) {
+
+            return "Please enter a valid 10-digit mobile number.";
+
         }
 
         return "";
+
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
 
         const validationError = validate();
 
         if (validationError) {
+
             setError(validationError);
+
             return;
+
         }
 
         try {
+
             setLoading(true);
+
             setError("");
 
-            const response = await api.post("/auth/login", {
-                email: formData.email.trim().toLowerCase(),
-                password: formData.password,
-            });
+            const response = await api.post(
+                "/auth/login",
+                {
+                    phone: formData.phone.trim(),
+                    password: formData.password,
+                }
+            );
 
-            const { token, user } = response.data;
+            const { token, user } =
+                response.data.data;
 
-            localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem(
+                "token",
+                token
+            );
+
+            localStorage.setItem(
+                "user",
+                JSON.stringify(user)
+            );
 
             if (user.role === "mill") {
+
                 navigate("/mill-dashboard");
-            } else {
-                navigate("/farmer-dashboard");
+
             }
 
-        } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                "Invalid email or password."
-            );
-        } finally {
-            setLoading(false);
+            else if (user.role === "farmer") {
+
+                navigate("/farmer-dashboard");
+
+            }
+
+            else {
+
+                navigate("/login");
+
+            }
+
         }
+
+        catch (err) {
+
+            setError(
+
+                err.response?.data?.message ||
+
+                "Invalid phone or password."
+
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
     };
 
     return (
+
         <div className="login-container">
+
             <div className="login-card">
 
-                <h2>CaneFlow</h2>
-                <p>Sign in to your account</p>
+                <h2>
 
-                {error && (
+                    CaneFlow
+
+                </h2>
+
+                <p>
+
+                    Sign in to your account
+
+                </p>
+
+                {
+
+                    error &&
+
                     <div className="error-box">
+
                         {error}
+
                     </div>
-                )}
+
+                }
 
                 <form onSubmit={handleSubmit}>
 
                     <input
-                        type="email"
-                        name="email"
-                        placeholder="Email Address"
-                        value={formData.email}
+                        type="text"
+                        name="phone"
+                        placeholder="Phone Number"
+                        value={formData.phone}
                         onChange={handleChange}
                         disabled={loading}
                     />
@@ -116,19 +184,43 @@ function Login() {
                         type="submit"
                         disabled={loading}
                     >
-                        {loading ? "Signing In..." : "Login"}
+
+                        {
+
+                            loading
+
+                                ?
+
+                                "Signing In..."
+
+                                :
+
+                                "Login"
+
+                        }
+
                     </button>
 
                 </form>
 
                 <p className="register-link">
+
                     Don't have an account?
-                    <Link to="/register"> Register</Link>
+
+                    <Link to="/register">
+
+                        {" "}Register
+
+                    </Link>
+
                 </p>
 
             </div>
+
         </div>
+
     );
+
 }
 
 export default Login;

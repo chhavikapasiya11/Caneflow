@@ -16,7 +16,7 @@ function MillDashboard() {
         try {
 
             const response =
-                await api.get("/dashboard/mill");
+                await api.get("/mill-dashboard");
 
             setDashboard(response.data.data);
 
@@ -65,7 +65,7 @@ function MillDashboard() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
-        navigate("/");
+     navigate("/login");
 
     };
 
@@ -95,7 +95,7 @@ function MillDashboard() {
 
                         <strong>Capacity :</strong>
 
-                        {dashboard.capacity || 0}
+                       {dashboard?.capacity || 0}
 
                     </p>
 
@@ -103,15 +103,15 @@ function MillDashboard() {
 
                         <strong>Allocated :</strong>
 
-                        {dashboard.allocated || 0}
-
+                      {dashboard?.allocated || 0}
                     </p>
 
                     <p>
 
                         <strong>Current Token :</strong>
 
-                        {dashboard.currentToken || 0}
+                    {dashboard?.currentToken || 0}
+
 
                     </p>
 
@@ -119,7 +119,7 @@ function MillDashboard() {
 
                         <strong>Remaining Vehicles :</strong>
 
-                        {dashboard.remainingVehicles || 0}
+                      {dashboard?.remainingVehicles || 0}
 
                     </p>
 

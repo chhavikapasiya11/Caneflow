@@ -18,7 +18,7 @@ const router = express.Router();
 Farmer Dashboard
 */
 router.get(
-"/farmer",
+"/",
 auth,
 authorize("farmer"),
 async (req, res) => {

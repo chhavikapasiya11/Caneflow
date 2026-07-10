@@ -8,7 +8,6 @@ function Register() {
 
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
         phone: "",
         password: "",
         confirmPassword: "",
@@ -31,12 +30,10 @@ function Register() {
 
     const validate = () => {
         const name = formData.name.trim();
-        const email = formData.email.trim().toLowerCase();
         const phone = formData.phone.trim();
 
         if (
             !name ||
-            !email ||
             !phone ||
             !formData.password ||
             !formData.confirmPassword
@@ -44,11 +41,6 @@ function Register() {
             return "All fields are required.";
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(email)) {
-            return "Please enter a valid email address.";
-        }
 
         const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -84,7 +76,6 @@ function Register() {
 
             await api.post("/auth/register", {
                 name: formData.name.trim(),
-                email: formData.email.trim().toLowerCase(),
                 phone: formData.phone.trim(),
                 password: formData.password,
                 role: formData.role,
@@ -132,14 +123,6 @@ function Register() {
                         disabled={loading}
                     />
 
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email Address"
-                        value={formData.email}
-                        onChange={handleChange}
-                        disabled={loading}
-                    />
 
                     <input
                         type="text"

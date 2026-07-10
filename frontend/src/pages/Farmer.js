@@ -9,96 +9,96 @@ function Farmers() {
 
     const navigate = useNavigate();
 
-   const [farmers, setFarmers] = useState([]);
+    const [farmers, setFarmers] = useState([]);
 
-const [search, setSearch] = useState("");
+    const [search, setSearch] = useState("");
 
-const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-const [loadingId, setLoadingId] = useState(null);
-   const loadFarmers = async () => {
+    const [loadingId, setLoadingId] = useState(null);
 
-    try {
+    const loadFarmers = async () => {
 
-        setLoading(true);
+        try {
 
-        const response =
-            await api.get("/farmers");
+            setLoading(true);
 
-        setFarmers(response.data.data);
+            const response =
+                await api.get("/farmers");
 
-    }
+            setFarmers(response.data.data);
 
-    catch (error) {
+        }
 
-        console.log(error);
+        catch (error) {
 
-    }
+            console.log(error);
 
-    finally {
+        }
 
-        setLoading(false);
+        finally {
 
-    }
+            setLoading(false);
 
-};
-    const verifyFarmer = async (farmerId) => {
+        }
 
-    try {
+    };
 
-        setLoadingId(farmerId);
-
-        const response =
-            await api.post(
-                "/queue",
-                {
-                    farmerId,
-                }
-            );
-
-        alert(
-
-            `Token ${response.data.data.tokenNumber}
-Service Date : ${response.data.data.serviceDate}`
-
-        );
+    useEffect(() => {
 
         loadFarmers();
 
-    }
+    }, []);
 
-    catch (error) {
+    const verifyFarmer = async (farmerId) => {
 
-        alert(
+        try {
 
-            error.response?.data?.message ||
+            setLoadingId(farmerId);
 
-            "Unable to generate token"
+            const response =
+                await api.post(
+                    "/queue",
+                    {
+                        farmerId,
+                    }
+                );
 
-        );
+            alert(
+                `Token ${response.data.data.tokenNumber}
+Service Date : ${response.data.data.serviceDate}`
+            );
 
-    }
+            loadFarmers();
 
-    finally {
+        }
 
-        setLoadingId(null);
+        catch (error) {
 
-    }
+            alert(
+                error.response?.data?.message ||
+                "Unable to generate token"
+            );
 
-};
+        }
 
-    const filteredFarmers =
-        farmers.filter((farmer) =>
+        finally {
 
-            farmer.name
-                .toLowerCase()
-                .includes(
-                    search.toLowerCase()
-                ) ||
+            setLoadingId(null);
 
-            farmer.phone.includes(search)
+        }
 
-        );
+    };
+
+    const filteredFarmers = farmers.filter((farmer) =>
+
+        farmer.name
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
+
+        farmer.phone.includes(search)
+
+    );
 
     return (
 
@@ -108,7 +108,7 @@ Service Date : ${response.data.data.serviceDate}`
 
                 <h1>
 
-                    Pending Farmers
+                    Farmer Verification
 
                 </h1>
 
@@ -131,9 +131,7 @@ Service Date : ${response.data.data.serviceDate}`
                 placeholder="Search by Name or Phone"
                 value={search}
                 onChange={(e) =>
-                    setSearch(
-                        e.target.value
-                    )
+                    setSearch(e.target.value)
                 }
             />
 
@@ -155,127 +153,117 @@ Service Date : ${response.data.data.serviceDate}`
 
                 </thead>
 
-           <tbody>
+                <tbody>
 
-{
+                    {
 
-loading ?
+                        loading ?
 
-(
+                        (
 
-<tr>
+                            <tr>
 
-<td colSpan="4">
+                                <td colSpan="4">
 
-Loading Farmers...
+                                    Loading Farmers...
 
-</td>
+                                </td>
 
-</tr>
+                            </tr>
 
-)
+                        )
 
-:
+                        :
 
-filteredFarmers.length === 0 ?
+                        filteredFarmers.length === 0 ?
 
-(
+                        (
 
-<tr>
+                            <tr>
 
-<td colSpan="4">
+                                <td colSpan="4">
 
-No Pending Farmers
+                                    No Pending Farmers
 
-</td>
+                                </td>
 
-</tr>
+                            </tr>
 
-)
+                        )
 
-:
+                        :
 
-filteredFarmers.map(
+                        filteredFarmers.map((farmer) => (
 
-(farmer)=>(
+                            <tr
+                                key={farmer._id}
+                            >
 
-<tr key={farmer._id}>
+                                <td>
 
-<td>
+                                    {farmer.name}
 
-{farmer.name}
+                                </td>
 
-</td>
+                                <td>
 
-<td>
+                                    {farmer.phone}
 
-{farmer.phone}
+                                </td>
 
-</td>
+                                <td>
 
-<td>
+                                    {
+                                        new Date(
+                                            farmer.createdAt
+                                        ).toLocaleDateString()
+                                    }
 
-{
+                                </td>
 
-new Date(
+                                <td>
 
-farmer.createdAt
+                                    <button
 
-).toLocaleDateString()
+                                        className="verify-btn"
 
-}
+                                        disabled={
+                                            loadingId === farmer._id
+                                        }
 
-</td>
+                                        onClick={() =>
+                                            verifyFarmer(
+                                                farmer._id
+                                            )
+                                        }
 
-<td>
+                                    >
 
-<button
+                                        {
 
-className="verify-btn"
+                                            loadingId === farmer._id
 
-disabled={
-loadingId===farmer._id
-}
+                                                ?
 
-onClick={()=>
+                                                "Generating..."
 
-verifyFarmer(
+                                                :
 
-farmer._id
+                                                "Verify & Generate Token"
 
-)
+                                        }
 
-}
+                                    </button>
 
->
+                                </td>
 
-{
+                            </tr>
 
-loadingId===farmer._id
+                        ))
 
-?
+                    }
 
-"Generating..."
-
-:
-
-"Verify & Generate Token"
-
-}
-
-</button>
-
-</td>
-
-</tr>
-
-)
-
-)
-
-}
-
-</tbody>
+                </tbody>
 
             </table>
 

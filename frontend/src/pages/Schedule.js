@@ -10,12 +10,16 @@ function Schedule() {
 
     const [schedules, setSchedules] = useState([]);
 
+    const [loading, setLoading] = useState(true);
+
     const loadSchedules = async () => {
 
         try {
 
+            setLoading(true);
+
             const response =
-                await api.get("/procurement");
+                await api.get("/schedules");
 
             setSchedules(response.data.data);
 
@@ -24,6 +28,12 @@ function Schedule() {
         catch (error) {
 
             console.log(error);
+
+        }
+
+        finally {
+
+            setLoading(false);
 
         }
 
@@ -41,18 +51,18 @@ function Schedule() {
 
         try {
 
-            const response =
-                await api.post(
-                    "/procurement",
-                    {
-                        serviceDate,
-                        capacity,
-                    }
-                );
+            await api.post(
+                "/schedules",
+                {
+                    serviceDate,
+                    capacity,
+                }
+            );
 
-            alert(response.data.message);
+            alert("Schedule created successfully");
 
             setServiceDate("");
+
             setCapacity("");
 
             loadSchedules();
@@ -62,8 +72,11 @@ function Schedule() {
         catch (error) {
 
             alert(
+
                 error.response?.data?.message ||
+
                 "Something went wrong"
+
             );
 
         }
@@ -82,9 +95,7 @@ function Schedule() {
 
                 </h1>
 
-                <form
-                    onSubmit={handleSubmit}
-                >
+                <form onSubmit={handleSubmit}>
 
                     <label>
 
@@ -93,14 +104,21 @@ function Schedule() {
                     </label>
 
                     <input
+
                         type="date"
+
                         value={serviceDate}
+
                         onChange={(e) =>
+
                             setServiceDate(
                                 e.target.value
                             )
+
                         }
+
                         required
+
                     />
 
                     <label>
@@ -110,18 +128,26 @@ function Schedule() {
                     </label>
 
                     <input
+
                         type="number"
+
                         placeholder="Enter Capacity"
+
                         value={capacity}
+
                         onChange={(e) =>
+
                             setCapacity(
                                 e.target.value
                             )
+
                         }
+
                         required
+
                     />
 
-                    <button>
+                    <button type="submit">
 
                         Create Schedule
 
@@ -163,6 +189,12 @@ function Schedule() {
 
                             </th>
 
+                            <th>
+
+                                Remaining
+
+                            </th>
+
                         </tr>
 
                     </thead>
@@ -171,43 +203,81 @@ function Schedule() {
 
                         {
 
-                            schedules.map(
-                                (schedule) => (
+                            loading ?
 
-                                    <tr
-                                        key={
-                                            schedule._id
-                                        }
-                                    >
+                            (
 
-                                        <td>
+                                <tr>
 
-                                            {
-                                                schedule.serviceDate
-                                            }
+                                    <td colSpan="4">
 
-                                        </td>
+                                        Loading...
 
-                                        <td>
+                                    </td>
 
-                                            {
-                                                schedule.capacity
-                                            }
+                                </tr>
 
-                                        </td>
-
-                                        <td>
-
-                                            {
-                                                schedule.allocated
-                                            }
-
-                                        </td>
-
-                                    </tr>
-
-                                )
                             )
+
+                            :
+
+                            schedules.length === 0 ?
+
+                            (
+
+                                <tr>
+
+                                    <td colSpan="4">
+
+                                        No Procurement Schedule Found
+
+                                    </td>
+
+                                </tr>
+
+                            )
+
+                            :
+
+                            schedules.map((schedule) => (
+
+                                <tr
+                                    key={schedule._id}
+                                >
+
+                                    <td>
+
+                                        {schedule.serviceDate}
+
+                                    </td>
+
+                                    <td>
+
+                                        {schedule.capacity}
+
+                                    </td>
+
+                                    <td>
+
+                                        {schedule.allocated}
+
+                                    </td>
+
+                                    <td>
+
+                                        {
+
+                                            schedule.capacity -
+
+                                            schedule.allocated
+
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            ))
 
                         }
 

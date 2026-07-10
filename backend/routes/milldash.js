@@ -21,7 +21,7 @@ const router = express.Router();
 Mill Dashboard
 */
 router.get(
-"/mill",
+"/",
 auth,
 authorize("mill"),
 async (req, res) => {

@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -9,16 +10,29 @@ import Register from "./pages/Register";
 import MillDashboard from "./pages/MillDashboard";
 import FarmerDashboard from "./pages/FarmerDashboard";
 import Schedule from "./pages/Schedule";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Farmers from "./pages/Farmer";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
+
   return (
+
     <BrowserRouter>
 
       <Routes>
 
+        {/* Default Route */}
+
         <Route
           path="/"
+          element={<Navigate to="/login" replace />}
+        />
+
+        {/* Authentication */}
+
+        <Route
+          path="/login"
           element={<Login />}
         />
 
@@ -27,40 +41,59 @@ function App() {
           element={<Register />}
         />
 
-        <Route
-          path="/mill-dashboard"
-          element={<MillDashboard />}
-        />
+        {/* Mill Routes */}
 
         <Route
-          path="/farmer-dashboard"
-          element={<FarmerDashboard />}
+          path="/mill-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["mill"]}>
+              <MillDashboard />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/schedule"
-          element={<Schedule />}
+          element={
+            <ProtectedRoute allowedRoles={["mill"]}>
+              <Schedule />
+            </ProtectedRoute>
+          }
         />
 
-     
-                <Route
-                    path="/farmer-dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={["farmer"]}>
-                            <FarmerDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/farmers"
+          element={
+            <ProtectedRoute allowedRoles={["mill"]}>
+              <Farmers />
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-    path="/farmers"
-    element={<Farmers />}
-/>
+        {/* Farmer Route */}
+
+        <Route
+          path="/farmer-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["farmer"]}>
+              <FarmerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Invalid Route */}
+
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
+        />
 
       </Routes>
 
     </BrowserRouter>
+
   );
+
 }
 
 export default App;
