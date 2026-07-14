@@ -150,3 +150,60 @@ td{
     vertical-align:middle;
 
 }
+.bulk-actions{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin:20px 0;
+
+}
+
+.bulk-actions p{
+
+    font-size:20px;
+
+    font-weight:600;
+
+    color:#2e7d32;
+
+}
+
+.bulk-btn{
+
+    background:#2e7d32;
+
+    color:white;
+
+    border:none;
+
+    padding:12px 22px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+.bulk-btn:hover{
+
+    background:#256b2b;
+
+}
+
+.bulk-btn:disabled{
+
+    background:#bdbdbd;
+
+    cursor:not-allowed;
+
+}

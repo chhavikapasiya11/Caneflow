@@ -37,79 +37,105 @@ router.get(
 // Register User
 
 router.post("/register", async (req, res) => {
+
   try {
 
     const {
+
       name,
+
       phone,
+
       password,
-      role
+
     } = req.body;
 
     if (!name || !phone || !password) {
+
       return res.status(400).json({
+
         success: false,
+
         message: "All fields are required"
+
       });
+
     }
 
-    const allowedRoles = [
-      "farmer",
-      "mill",
-      "admin"
-    ];
+    const existingUser = await User.findOne({
 
-    if (
-      role &&
-      !allowedRoles.includes(role)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role"
-      });
-    }
+      phone
 
-    const existingUser =
-      await User.findOne({ phone });
+    });
 
     if (existingUser) {
+
       return res.status(400).json({
+
         success: false,
+
         message: "User already exists"
+
       });
+
     }
 
-    const hashedPassword =
-      await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(
+
+      password,
+
+      10
+
+    );
 
     const user = await User.create({
+
       name,
+
       phone,
+
       password: hashedPassword,
-      role: role || "farmer"
+
+      role: "farmer"
+
     });
 
     res.status(201).json({
+
       success: true,
-      message: "User registered successfully",
+
+      message: "Farmer registered successfully",
+
       data: {
+
         id: user._id,
+
         name: user.name,
+
         phone: user.phone,
+
         role: user.role
+
       }
+
     });
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(error);
 
     res.status(500).json({
+
       success: false,
+
       message: "Internal Server Error"
+
     });
 
   }
+
 });
 
 // Login User

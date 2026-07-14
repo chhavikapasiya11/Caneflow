@@ -17,6 +17,10 @@ function Farmers() {
 
     const [loadingId, setLoadingId] = useState(null);
 
+    const [selectedFarmers, setSelectedFarmers] = useState([]);
+
+    const [bulkLoading, setBulkLoading] = useState(false);
+
     const loadFarmers = async () => {
 
         try {
@@ -90,15 +94,127 @@ Service Date : ${response.data.data.serviceDate}`
 
     };
 
-    const filteredFarmers = farmers.filter((farmer) =>
+    const filteredFarmers =
+        farmers.filter((farmer) =>
 
-        farmer.name
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
+            farmer.name
+                .toLowerCase()
+                .includes(search.toLowerCase()) ||
 
-        farmer.phone.includes(search)
+            farmer.phone.includes(search)
 
-    );
+        );
+
+    const handleSelect = (id) => {
+
+        if (selectedFarmers.includes(id)) {
+
+            setSelectedFarmers(
+
+                selectedFarmers.filter(
+
+                    farmerId => farmerId !== id
+
+                )
+
+            );
+
+        }
+
+        else {
+
+            setSelectedFarmers([
+
+                ...selectedFarmers,
+
+                id
+
+            ]);
+
+        }
+
+    };
+
+    const handleSelectAll = () => {
+
+        if (
+
+            selectedFarmers.length ===
+
+            filteredFarmers.length
+
+        ) {
+
+            setSelectedFarmers([]);
+
+        }
+
+        else {
+
+            setSelectedFarmers(
+
+                filteredFarmers.map(
+
+                    farmer => farmer._id
+
+                )
+
+            );
+
+        }
+
+    };
+
+    const bulkVerify = async () => {
+
+        if (selectedFarmers.length === 0) {
+
+            alert("Select at least one farmer");
+
+            return;
+
+        }
+
+        try {
+
+            setBulkLoading(true);
+
+            const response =
+                await api.post(
+                    "/queue/bulk",
+                    {
+                        farmerIds:
+                            selectedFarmers,
+                    }
+                );
+
+            alert(response.data.message);
+
+            setSelectedFarmers([]);
+
+            loadFarmers();
+
+        }
+
+        catch (error) {
+
+            alert(
+
+                error.response?.data?.message ||
+
+                "Bulk Verification Failed"
+
+            );
+
+        }
+
+        finally {
+
+            setBulkLoading(false);
+
+        }
+
+    };
 
     return (
 
@@ -113,10 +229,15 @@ Service Date : ${response.data.data.serviceDate}`
                 </h1>
 
                 <button
+
                     className="back-btn"
+
                     onClick={() =>
+
                         navigate("/mill-dashboard")
+
                     }
+
                 >
 
                     Back
@@ -126,20 +247,102 @@ Service Date : ${response.data.data.serviceDate}`
             </div>
 
             <input
+
                 type="text"
+
                 className="search-box"
+
                 placeholder="Search by Name or Phone"
+
                 value={search}
+
                 onChange={(e) =>
+
                     setSearch(e.target.value)
+
                 }
+
             />
+
+            <div className="bulk-actions">
+
+                <p>
+
+                    Selected :
+
+                    <strong>
+
+                        {" "}
+
+                        {selectedFarmers.length}
+
+                    </strong>
+
+                    {" "}Farmer(s)
+
+                </p>
+
+                <button
+
+                    className="bulk-btn"
+
+                    disabled={
+
+                        selectedFarmers.length === 0 ||
+
+                        bulkLoading
+
+                    }
+
+                    onClick={bulkVerify}
+
+                >
+
+                    {
+
+                        bulkLoading
+
+                        ?
+
+                        "Generating..."
+
+                        :
+
+                        "Confirm Verification"
+
+                    }
+
+                </button>
+
+            </div>
 
             <table>
 
                 <thead>
 
                     <tr>
+
+                        <th>
+
+                            <input
+
+                                type="checkbox"
+
+                                checked={
+
+                                    filteredFarmers.length > 0 &&
+
+                                    selectedFarmers.length ===
+
+                                    filteredFarmers.length
+
+                                }
+
+                                onChange={handleSelectAll}
+
+                            />
+
+                        </th>
 
                         <th>Name</th>
 
@@ -163,7 +366,7 @@ Service Date : ${response.data.data.serviceDate}`
 
                             <tr>
 
-                                <td colSpan="4">
+                                <td colSpan="5">
 
                                     Loading Farmers...
 
@@ -181,7 +384,7 @@ Service Date : ${response.data.data.serviceDate}`
 
                             <tr>
 
-                                <td colSpan="4">
+                                <td colSpan="5">
 
                                     No Pending Farmers
 
@@ -195,9 +398,37 @@ Service Date : ${response.data.data.serviceDate}`
 
                         filteredFarmers.map((farmer) => (
 
-                            <tr
-                                key={farmer._id}
-                            >
+                            <tr key={farmer._id}>
+
+                                <td>
+
+                                    <input
+
+                                        type="checkbox"
+
+                                        checked={
+
+                                            selectedFarmers.includes(
+
+                                                farmer._id
+
+                                            )
+
+                                        }
+
+                                        onChange={() =>
+
+                                            handleSelect(
+
+                                                farmer._id
+
+                                            )
+
+                                        }
+
+                                    />
+
+                                </td>
 
                                 <td>
 
@@ -214,9 +445,13 @@ Service Date : ${response.data.data.serviceDate}`
                                 <td>
 
                                     {
+
                                         new Date(
+
                                             farmer.createdAt
+
                                         ).toLocaleDateString()
+
                                     }
 
                                 </td>
@@ -228,13 +463,19 @@ Service Date : ${response.data.data.serviceDate}`
                                         className="verify-btn"
 
                                         disabled={
+
                                             loadingId === farmer._id
+
                                         }
 
                                         onClick={() =>
+
                                             verifyFarmer(
+
                                                 farmer._id
+
                                             )
+
                                         }
 
                                     >
@@ -243,13 +484,13 @@ Service Date : ${response.data.data.serviceDate}`
 
                                             loadingId === farmer._id
 
-                                                ?
+                                            ?
 
-                                                "Generating..."
+                                            "Generating..."
 
-                                                :
+                                            :
 
-                                                "Verify & Generate Token"
+                                            "Verify"
 
                                         }
 
