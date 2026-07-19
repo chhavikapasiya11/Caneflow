@@ -3,6 +3,9 @@ const express = require("express");
 const QueueState =
 require("../models/QueueState");
 
+const QueueTicket =
+require("../models/QueueTicket");
+
 const auth =
 require("../middleware/auth");
 
@@ -10,6 +13,7 @@ const authorize =
 require("../middleware/role");
 
 const router = express.Router();
+
 /*
 Update Current Token Manually
 */
@@ -18,6 +22,7 @@ router.patch(
 auth,
 authorize("mill"),
 async (req, res) => {
+
 try {
 
   const { currentToken } =
@@ -26,16 +31,19 @@ try {
   if (
     currentToken === undefined
   ) {
+
     return res.status(400).json({
       success: false,
       message:
         "Current token is required",
     });
+
   }
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const today =
+    new Date()
+      .toISOString()
+      .split("T")[0];
 
   const state =
     await QueueState.findOneAndUpdate(
@@ -53,12 +61,21 @@ try {
       }
     );
 
+  const io =
+    req.app.get("io");
+
+  io.emit("queueUpdated");
+
+  io.emit("dashboardUpdated");
+
   res.status(200).json({
     success: true,
     data: state,
   });
 
-} catch (error) {
+}
+
+catch (error) {
 
   console.error(error);
 
@@ -69,33 +86,42 @@ try {
   });
 
 }
+
 }
 );
 
-//Move To Next Vehicle
+/*
+Move To Next Vehicle
+*/
 
 router.post(
 "/next",
 auth,
 authorize("mill"),
 async (req, res) => {
+
 try {
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const today =
+    new Date()
+      .toISOString()
+      .split("T")[0];
 
   const totalTokens =
     await QueueTicket.countDocuments({
       serviceDate: today,
     });
 
-  if (totalTokens === 0) {
+  if (
+    totalTokens === 0
+  ) {
+
     return res.status(400).json({
       success: false,
       message:
         "No vehicles scheduled for today",
     });
+
   }
 
   let state =
@@ -112,15 +138,22 @@ try {
         averageProcessingMinutes: 5,
       });
 
-      return res.status(200).json({
-        success: true,
-        message:
-          "Moved to next vehicle",
-        data: {
-          currentToken:
-            state.currentToken,
-        },
-      });
+    const io =
+      req.app.get("io");
+
+    io.emit("queueUpdated");
+
+    io.emit("dashboardUpdated");
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Moved to next vehicle",
+      data: {
+        currentToken:
+          state.currentToken,
+      },
+    });
 
   }
 
@@ -128,11 +161,13 @@ try {
     state.currentToken >=
     totalTokens
   ) {
+
     return res.status(400).json({
       success: false,
       message:
         "No more vehicles in queue",
     });
+
   }
 
   state.currentToken += 1;
@@ -141,6 +176,13 @@ try {
     new Date();
 
   await state.save();
+
+  const io =
+    req.app.get("io");
+
+  io.emit("queueUpdated");
+
+  io.emit("dashboardUpdated");
 
   res.status(200).json({
     success: true,
@@ -152,7 +194,9 @@ try {
     },
   });
 
-} catch (error) {
+}
+
+catch (error) {
 
   console.error(error);
 
@@ -163,6 +207,7 @@ try {
   });
 
 }
+
 }
 );
 

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 import "../styles/Farmer.css";
-
+import socket from "../socket";
 function Farmers() {
 
     const navigate = useNavigate();
@@ -48,11 +48,33 @@ function Farmers() {
 
     };
 
-    useEffect(() => {
+   useEffect(() => {
+
+    loadFarmers();
+
+    socket.on("farmerVerified", () => {
+
+        console.log("Farmer Verified");
 
         loadFarmers();
 
-    }, []);
+    });
+
+    socket.on("dashboardUpdated", () => {
+
+        loadFarmers();
+
+    });
+
+    return () => {
+
+        socket.off("farmerVerified");
+
+        socket.off("dashboardUpdated");
+
+    };
+
+}, []);
 
     const verifyFarmer = async (farmerId) => {
 
@@ -165,56 +187,62 @@ Service Date : ${response.data.data.serviceDate}`
 
     };
 
-    const bulkVerify = async () => {
+  const bulkVerify = async () => {
 
-        if (selectedFarmers.length === 0) {
+    if (selectedFarmers.length === 0) {
 
-            alert("Select at least one farmer");
+        alert("Please select at least one farmer.");
 
-            return;
+        return;
 
-        }
+    }
 
-        try {
+    try {
 
-            setBulkLoading(true);
+        setBulkLoading(true);
 
-            const response =
-                await api.post(
-                    "/queue/bulk",
-                    {
-                        farmerIds:
-                            selectedFarmers,
-                    }
-                );
+        for (const farmerId of selectedFarmers) {
 
-            alert(response.data.message);
-
-            setSelectedFarmers([]);
-
-            loadFarmers();
-
-        }
-
-        catch (error) {
-
-            alert(
-
-                error.response?.data?.message ||
-
-                "Bulk Verification Failed"
-
+            await api.post(
+                "/queue",
+                {
+                    farmerId,
+                }
             );
 
         }
 
-        finally {
+        alert(
 
-            setBulkLoading(false);
+            `${selectedFarmers.length} farmer(s) verified successfully.`
 
-        }
+        );
 
-    };
+        setSelectedFarmers([]);
+
+        loadFarmers();
+
+    }
+
+    catch (error) {
+
+        alert(
+
+            error.response?.data?.message ||
+
+            "Bulk verification failed."
+
+        );
+
+    }
+
+    finally {
+
+        setBulkLoading(false);
+
+    }
+
+};
 
     return (
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import socket from "../socket";
 import api from "../services/api";
 
 import "../styles/FarmerDashboard.css";
@@ -43,6 +43,30 @@ function FarmerDashboard() {
     useEffect(() => {
 
         loadDashboard();
+
+        socket.on("queueUpdated", () => {
+
+            console.log("Queue Updated");
+
+            loadDashboard();
+
+        });
+
+        socket.on("dashboardUpdated", () => {
+
+            console.log("Dashboard Updated");
+
+            loadDashboard();
+
+        });
+
+        return () => {
+
+            socket.off("queueUpdated");
+
+            socket.off("dashboardUpdated");
+
+        };
 
     }, []);
 

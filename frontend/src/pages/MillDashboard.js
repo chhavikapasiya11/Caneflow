@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import socket from "../socket";
 import api from "../services/api";
 
 import "../styles/MillDashboard.css";
@@ -34,6 +34,30 @@ function MillDashboard() {
 
         loadDashboard();
 
+        socket.on("dashboardUpdated", () => {
+
+            console.log("Dashboard Updated");
+
+            loadDashboard();
+
+        });
+
+        socket.on("queueUpdated", () => {
+
+            console.log("Queue Updated");
+
+            loadDashboard();
+
+        });
+
+        return () => {
+
+            socket.off("dashboardUpdated");
+
+            socket.off("queueUpdated");
+
+        };
+
     }, []);
 
     const nextVehicle = async () => {
@@ -44,8 +68,6 @@ function MillDashboard() {
                 await api.post("/queue-state/next");
 
             alert(response.data.message);
-
-            loadDashboard();
 
         }
 
@@ -65,7 +87,7 @@ function MillDashboard() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
-     navigate("/login");
+        navigate("/login");
 
     };
 
@@ -95,7 +117,7 @@ function MillDashboard() {
 
                         <strong>Capacity :</strong>
 
-                       {dashboard?.capacity || 0}
+                        {dashboard?.capacity || 0}
 
                     </p>
 
@@ -103,15 +125,15 @@ function MillDashboard() {
 
                         <strong>Allocated :</strong>
 
-                      {dashboard?.allocated || 0}
+                        {dashboard?.allocated || 0}
+
                     </p>
 
                     <p>
 
                         <strong>Current Token :</strong>
 
-                    {dashboard?.currentToken || 0}
-
+                        {dashboard?.currentToken || 0}
 
                     </p>
 
@@ -119,47 +141,47 @@ function MillDashboard() {
 
                         <strong>Remaining Vehicles :</strong>
 
-                      {dashboard?.remainingVehicles || 0}
+                        {dashboard?.remainingVehicles || 0}
 
                     </p>
 
                 </div>
 
-               <button
-    onClick={nextVehicle}
->
+                <button
+                    onClick={nextVehicle}
+                >
 
-    Next Vehicle
+                    Next Vehicle
 
-</button>
+                </button>
 
-<button
-    onClick={() =>
-        navigate("/farmers")
-    }
->
+                <button
+                    onClick={() =>
+                        navigate("/farmers")
+                    }
+                >
 
-    Farmer Verification
+                    Farmer Verification
 
-</button>
+                </button>
 
-<button
-    onClick={() =>
-        navigate("/schedule")
-    }
->
+                <button
+                    onClick={() =>
+                        navigate("/schedule")
+                    }
+                >
 
-    Procurement Schedule
+                    Procurement Schedule
 
-</button>
+                </button>
 
-<button
-    onClick={logout}
->
+                <button
+                    onClick={logout}
+                >
 
-    Logout
+                    Logout
 
-</button>
+                </button>
 
             </div>
 
