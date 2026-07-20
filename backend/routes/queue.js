@@ -118,8 +118,9 @@ router.get(
         });
       }
 
-      const today =
-        new Date().toISOString().split("T")[0];
+      const getToday = require("../utils/date");
+
+const today = getToday();
 
       if (ticket.serviceDate !== today) {
 

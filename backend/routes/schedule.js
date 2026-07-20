@@ -8,6 +8,14 @@ require("../middleware/auth");
 
 const authorize =
 require("../middleware/role");
+const QueueTicket =
+require("../models/QueueTicket");
+
+const QueueState =
+require("../models/QueueState");
+
+const getToday =
+require("../utils/date");
 
 const router = express.Router();
 
@@ -111,6 +119,127 @@ try {
 
 
 }
+);
+/*
+Cleanup Old Records
+*/
+
+router.delete(
+    "/cleanup",
+    auth,
+    authorize("mill"),
+    async (req, res) => {
+
+        try {
+
+            const getToday = require("../utils/date");
+
+            const today = new Date(getToday());
+
+            today.setDate(today.getDate() - 7);
+
+            const cutoffDate =
+                today.toISOString().split("T")[0];
+
+            const oldSchedules =
+                await ProcurementSchedule.find({
+                    serviceDate: {
+                        $lt: cutoffDate,
+                    },
+                });
+
+            const dates =
+                oldSchedules.map(
+                    schedule => schedule.serviceDate
+                );
+
+            await ProcurementSchedule.deleteMany({
+                serviceDate: {
+                    $in: dates,
+                },
+            });
+
+            await QueueTicket.deleteMany({
+                serviceDate: {
+                    $in: dates,
+                },
+            });
+
+            await QueueState.deleteMany({
+                serviceDate: {
+                    $in: dates,
+                },
+            });
+
+            res.status(200).json({
+                success: true,
+                message: `${dates.length} old schedule(s) cleaned.`,
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+            });
+
+        }
+
+    }
+);
+/*
+Delete Schedule
+*/
+
+router.delete(
+    "/:id",
+    auth,
+    authorize("mill"),
+    async (req, res) => {
+
+        try {
+
+            const schedule =
+                await ProcurementSchedule.findById(
+                    req.params.id
+                );
+
+            if (!schedule) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Schedule not found",
+                });
+
+            }
+
+            await ProcurementSchedule.findByIdAndDelete(
+                req.params.id
+            );
+
+            res.status(200).json({
+                success: true,
+                message: "Schedule deleted successfully.",
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+            });
+
+        }
+
+    }
 );
 
 module.exports = router;

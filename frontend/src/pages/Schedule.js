@@ -5,12 +5,26 @@ import "../styles/Schedule.css";
 function Schedule() {
 
     const [serviceDate, setServiceDate] = useState("");
-
     const [capacity, setCapacity] = useState("");
-
     const [schedules, setSchedules] = useState([]);
-
     const [loading, setLoading] = useState(true);
+
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
+
+    const getToday = () => {
+
+        return new Intl.DateTimeFormat(
+            "en-CA",
+            {
+                timeZone: "Asia/Kolkata",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+            }
+        ).format(new Date());
+
+    };
 
     const loadSchedules = async () => {
 
@@ -45,6 +59,22 @@ function Schedule() {
 
     }, []);
 
+    useEffect(() => {
+
+        if (!message) return;
+
+        const timer = setTimeout(() => {
+
+            setMessage("");
+
+            setMessageType("");
+
+        }, 3000);
+
+        return () => clearTimeout(timer);
+
+    }, [message]);
+
     const handleSubmit = async (e) => {
 
         e.preventDefault();
@@ -59,7 +89,9 @@ function Schedule() {
                 }
             );
 
-            alert("Schedule created successfully");
+            setMessage("Schedule created successfully.");
+
+            setMessageType("success");
 
             setServiceDate("");
 
@@ -71,13 +103,97 @@ function Schedule() {
 
         catch (error) {
 
-            alert(
+            setMessage(
 
                 error.response?.data?.message ||
 
-                "Something went wrong"
+                "Something went wrong."
 
             );
+
+            setMessageType("error");
+
+        }
+
+    };
+
+    const deleteSchedule = async (id) => {
+
+        if (
+            !window.confirm(
+                "Delete this schedule?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+
+            const response =
+                await api.delete(
+                    `/schedules/${id}`
+                );
+
+            setMessage(response.data.message);
+
+            setMessageType("success");
+
+            loadSchedules();
+
+        }
+
+        catch (error) {
+
+            setMessage(
+
+                error.response?.data?.message ||
+
+                "Unable to delete schedule."
+
+            );
+
+            setMessageType("error");
+
+        }
+
+    };
+
+    const cleanupOldRecords = async () => {
+
+        if (
+            !window.confirm(
+                "Delete all schedules before today?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+
+            const response =
+                await api.delete(
+                    "/schedules/cleanup"
+                );
+
+            setMessage(response.data.message);
+
+            setMessageType("success");
+
+            loadSchedules();
+
+        }
+
+        catch (error) {
+
+            setMessage(
+
+                error.response?.data?.message ||
+
+                "Cleanup failed."
+
+            );
+
+            setMessageType("error");
 
         }
 
@@ -94,6 +210,22 @@ function Schedule() {
                     Procurement Schedule
 
                 </h1>
+
+                {
+
+                    message && (
+
+                        <div
+                            className={`message ${messageType}`}
+                        >
+
+                            {message}
+
+                        </div>
+
+                    )
+
+                }
 
                 <form onSubmit={handleSubmit}>
 
@@ -155,6 +287,15 @@ function Schedule() {
 
                 </form>
 
+                <button
+                    className="cleanup-btn"
+                    onClick={cleanupOldRecords}
+                >
+
+                    Cleanup Old Records
+
+                </button>
+
             </div>
 
             <div className="schedule-list">
@@ -195,6 +336,12 @@ function Schedule() {
 
                             </th>
 
+                            <th>
+
+                                Action
+
+                            </th>
+
                         </tr>
 
                     </thead>
@@ -209,7 +356,7 @@ function Schedule() {
 
                                 <tr>
 
-                                    <td colSpan="4">
+                                    <td colSpan="5">
 
                                         Loading...
 
@@ -227,7 +374,7 @@ function Schedule() {
 
                                 <tr>
 
-                                    <td colSpan="4">
+                                    <td colSpan="5">
 
                                         No Procurement Schedule Found
 
@@ -270,6 +417,45 @@ function Schedule() {
                                             schedule.capacity -
 
                                             schedule.allocated
+
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        {
+
+                                            schedule.serviceDate < getToday() ?
+
+                                            (
+
+                                                <button
+                                                    className="delete-btn"
+                                                    onClick={() =>
+                                                        deleteSchedule(
+                                                            schedule._id
+                                                        )
+                                                    }
+                                                >
+
+                                                    Delete
+
+                                                </button>
+
+                                            )
+
+                                            :
+
+                                            (
+
+                                                <span>
+
+                                                    -
+
+                                                </span>
+
+                                            )
 
                                         }
 

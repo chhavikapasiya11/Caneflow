@@ -44,10 +44,9 @@ try {
     });
   }
 
-  const today =
-    new Date()
-      .toISOString()
-      .split("T")[0];
+ const getToday = require("../utils/date");
+
+const today = getToday();
 
   if (
     ticket.serviceDate !==
@@ -87,13 +86,9 @@ try {
   const avgProcessingMinutes =
     queueState?.averageProcessingMinutes || 5;
 
-  const ahead =
-    Math.max(
-      ticket.tokenNumber -
-      currentToken -
-      1,
-      0
-    );
+  const ahead = currentToken >= ticket.tokenNumber
+    ? 0
+    : ticket.tokenNumber - currentToken - 1;
 
   const etaMinutes =
     ahead *
@@ -101,26 +96,26 @@ try {
 
   let message = "";
 
-  if (
-    currentToken === 0
-  ) {
+if (currentToken === 0) {
 
-    message =
-      "Queue has not started yet";
+    message = "Queue has not started yet";
 
-  } else if (
-    ahead === 0
-  ) {
+}
+else if (currentToken > ticket.tokenNumber) {
 
-    message =
-      "Your turn has arrived. Please proceed to the mill";
+    message = "Your turn has already passed.";
 
-  } else {
+}
+else if (currentToken === ticket.tokenNumber) {
 
-    message =
-      `${ahead} vehicle(s) ahead of you`;
+    message = "Your turn has arrived. Please proceed to the mill";
 
-  }
+}
+else {
+
+    message = `${ahead} vehicle(s) ahead of you`;
+
+}
 
   res.status(200).json({
     success: true,

@@ -11,6 +11,7 @@ require("../middleware/auth");
 
 const authorize =
 require("../middleware/role");
+const getToday = require("../utils/date");
 
 const router = express.Router();
 
@@ -40,10 +41,8 @@ try {
 
   }
 
-  const today =
-    new Date()
-      .toISOString()
-      .split("T")[0];
+
+const today = getToday();
 
   const state =
     await QueueState.findOneAndUpdate(
@@ -102,10 +101,7 @@ async (req, res) => {
 
 try {
 
-  const today =
-    new Date()
-      .toISOString()
-      .split("T")[0];
+ const today = getToday();
 
   const totalTokens =
     await QueueTicket.countDocuments({

@@ -17,6 +17,7 @@ require("../middleware/role");
 
 const router = express.Router();
 
+const getToday = require("../utils/date");
 /*
 Mill Dashboard
 */
@@ -27,10 +28,7 @@ authorize("mill"),
 async (req, res) => {
 try {
 
-  const today =
-    new Date()
-      .toISOString()
-      .split("T")[0];
+  const today = getToday();
 
   const schedule =
     await ProcurementSchedule.findOne({
